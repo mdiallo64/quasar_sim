@@ -22,3 +22,4 @@ target_include_directories(quasar_sim PRIVATE
 
     
 )
+file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
