@@ -1,6 +1,6 @@
 #include "camera.h"
-#include <glm/gtc/matrix_transform.hpp>  // for glm::lookAt
-#include <cmath>                          // for sin, cos
+#include <glm/gtc/matrix_transform.hpp>
+#include <cmath>
 
 Camera::Camera(glm::vec3 pos)
 {

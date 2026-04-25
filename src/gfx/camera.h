@@ -6,11 +6,11 @@
 class Camera
  {
     public:
-    Camera(glm::vec3 pos);
-    glm::mat4 getViewMatrix();
-    void processMouseDrag(float xoffset, float yoffset);
-    float getZoom(float yoffset);
-    
+        Camera(glm::vec3 pos);
+        glm::mat4 getViewMatrix();
+        void processMouseDrag(float xoffset, float yoffset);
+        float getZoom(float yoffset);
+        
     private:
         glm::vec3 cameraPos;
         glm::vec3 worldUp;
