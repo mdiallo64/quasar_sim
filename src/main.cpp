@@ -1,30 +1,53 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <glad/glad.h> //loads opengl functions, needs to be 1st
+#include <GLFW/glfw3.h> //window creation and input handling
 #include <glm/glm.hpp>
 #include "gfx/camera.h"
 #include <iostream>
+#include <string>
+#include "gfx/shader.h"
+#include "quasar/black_hole.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 
 const unsigned int  SCR_WIDTH = 800;
 const unsigned int  SCR_HEIGHT = 600;
 
+//global state that is accessible by callbacks
+//Camera is glbal so mouse/scroll callbacks can update it wihout any extra prameters
 Camera camera (glm::vec3(0.0f, 0.0f, 3.0f));
 
-float lastX = 400.0f;
-float lastY = 300.0f;
+//tracks the previouse mouse position to calculate compute per frame deltas
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+
+//prevents big jump on the first mouse callback when lastX/lastY
 bool firstMouse = true;
 
 
+//fps counter state
+double crntTime = 0.0;
+double prevTime = 0.0;
+double timeDiff = 0.0;
+unsigned int counter = 0;
+
+
+//called by GLFW whenever the window is resized
+//keeps the opengl viewport matched to the new window dimensions
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
+
+//called by GLFW whenever the mouse moves
+//converts absolute cursorposition into a per frame delta and forwards to camera
 void mouse_callback(GLFWwindow  *window, double xposIn, double yposIn)
 {
     float xpos = (float) xposIn;
     float ypos = (float) yposIn;
 
+    //on the first callback, snap lastX/lastY to the real cursor position
+    //makes sure first delta is 0 instead of a jump from the center of the window
     if(firstMouse)
     {
         lastX = xpos;
@@ -32,19 +55,24 @@ void mouse_callback(GLFWwindow  *window, double xposIn, double yposIn)
         firstMouse = false;   
     }
 
+    //computes how far the cursor moved since the last callback
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    float yoffset = lastY - ypos; //reversed since screen Y goes top to bottom and camera Y goes up
+
+    //update last position for next frame
     lastX = xpos;
     lastY = ypos;
 
     camera.processMouseDrag(xoffset, yoffset);
 }
 
+//called by glfw whenever the scroll wheel moves
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-
+    camera.processScroll((float)yoffset);
 }
 
+//polled every frame, if escape is presses, then window is closed
 void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -57,8 +85,8 @@ void processInput(GLFWwindow *window)
 
 int main()
 {
+    //Initializing GLFW
     glfwInit();
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
@@ -74,31 +102,80 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
+    //register the callbacks. Will be called by glfw when events occur during glfwPollEvents()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+
+    //hides the OS cursor and locks it to the window to get raw mouse delta for camera rotation
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
+    //glad initialization
+    //loads all opengl function pointers for this driver/platform
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << '\n';
         return -1;
     }
 
+    //enables depth testing so closer geometry blocks geometry behind it
     glEnable(GL_DEPTH_TEST);
 
+    //creating shader program by passing vertex and fragment shader names
+    Shader shader("shaders/black_hole.vs", "shaders/black_hole.fs");
+    BlackHole blackHole(1.0f); //radius of 1.0 in world units
 
+    //makes sure first timediff isn't huge
+    prevTime = glfwGetTime();
+
+    //render loop
     while(!glfwWindowShouldClose(window))
     {
+
         processInput(window);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);      
+        //fps counter
+        //updates window title about 30 times per second with current fps and ms per frame
+        crntTime = glfwGetTime();
+        timeDiff = crntTime - prevTime;
+        counter++;
+        if(timeDiff >= 1.0 / 30.0)
+        {
+            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            std::string newTitle = "Quasar simulation " + FPS + "FPS / " + ms + "ms";
+            glfwSetWindowTitle (window, newTitle.c_str());
+            prevTime = crntTime;
+            counter = 0;
+        }
 
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        //builds transformation matrices
+        //projection: converts 3d camera space to 2D clip space
+        //45 degree fov, apect ratio from window dimensions, near = 0.1, and far = 100.0
+        glm::mat4 projection = glm::perspective(glm::radians(camera.getFov()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        //view: moves the wolrd relative to the camera position and orientation
+        glm::mat4 view = camera.getViewMatrix();
+
+        //the draw scene
+        shader.use();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        //model matrix set inside BlackHole::draw
+        blackHole.draw(shader);
+
+        //swaps thr front and back buffers, shows the rendered frame to the screen
         glfwSwapBuffers(window);
+
+        //processes any queued OS events, fires the callsbacks like mouse, scroll, and resize
         glfwPollEvents();
     }
         glfwTerminate();

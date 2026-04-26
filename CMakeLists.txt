@@ -11,8 +11,13 @@ find_package(glfw3 REQUIRED)
 include_directories(include)
 
 
-add_executable(quasar_sim src/glad.c src/main.cpp src/gfx/camera.cpp)
-
+add_executable(quasar_sim
+    src/glad.c
+    src/main.cpp
+    src/gfx/camera.cpp
+    src/gfx/shader.cpp
+    src/quasar/black_hole.cpp
+)
 
 target_link_libraries(quasar_sim OpenGL::GL glfw dl)
 
