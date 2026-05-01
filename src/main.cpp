@@ -157,7 +157,7 @@ int main()
         }
 
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -169,13 +169,14 @@ int main()
         //view: moves the wolrd relative to the camera position and orientation
         glm::mat4 view = camera.getViewMatrix();
 
-        //the draw scene
-        shader.use();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
 
-        //model matrix set inside BlackHole::draw
-        blackHole.draw(shader);
+        //additive blending:
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);//particle colors add to whatever is behind them instead of replacing
+
+
+        glDepthMask(GL_FALSE); //this disables depth writes so particles don't block other particles
+
 
         diskShader.use();
         diskShader.setMat4("projection", projection);
@@ -184,6 +185,19 @@ int main()
         diskShader.setFloat("innerRadius", 2.0f);
         diskShader.setFloat("outerRadius", 8.0f);
         disk.draw(diskShader);
+
+
+        glDepthMask(GL_TRUE); 
+        glDisable(GL_BLEND);
+
+        //the draw scene
+        shader.use();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+                
+        //model matrix set inside BlackHole::draw
+        blackHole.draw(shader);
 
 
         //swaps thr front and back buffers, shows the rendered frame to the screen

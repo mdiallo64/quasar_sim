@@ -24,6 +24,6 @@ void main()
 
     //blend function to blend between hot and cool based on position
     vec3 mixedColor = mix(inner, outer, tNorm);
-    color = vec4(mixedColor, 1.0);
-
+    float alpha = mix(0.8, 0.3, tNorm);
+    color = vec4(mixedColor, alpha);
 }
