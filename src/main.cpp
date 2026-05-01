@@ -6,6 +6,7 @@
 #include <string>
 #include "gfx/shader.h"
 #include "quasar/black_hole.h"
+#include "quasar/accretion_disk.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 
@@ -14,7 +15,7 @@ const unsigned int  SCR_HEIGHT = 600;
 
 //global state that is accessible by callbacks
 //Camera is glbal so mouse/scroll callbacks can update it wihout any extra prameters
-Camera camera (glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera (glm::vec3(0.0f, 8.0f, 15.0f));
 
 //tracks the previouse mouse position to calculate compute per frame deltas
 float lastX = SCR_WIDTH / 2.0f;
@@ -127,6 +128,10 @@ int main()
     Shader shader("shaders/black_hole.vs", "shaders/black_hole.fs");
     BlackHole blackHole(1.0f); //radius of 1.0 in world units
 
+    Shader diskShader("shaders/accretion_disk.vs", "shaders/accretion_disk.fs");
+    AccretionDisk disk(2.0f, 8.0f, 25000);
+
+
     //makes sure first timediff isn't huge
     prevTime = glfwGetTime();
 
@@ -171,6 +176,15 @@ int main()
 
         //model matrix set inside BlackHole::draw
         blackHole.draw(shader);
+
+        diskShader.use();
+        diskShader.setMat4("projection", projection);
+        diskShader.setMat4("view", view);
+        diskShader.setFloat("time", (float) glfwGetTime());
+        diskShader.setFloat("innerRadius", 2.0f);
+        diskShader.setFloat("outerRadius", 8.0f);
+        disk.draw(diskShader);
+
 
         //swaps thr front and back buffers, shows the rendered frame to the screen
         glfwSwapBuffers(window);

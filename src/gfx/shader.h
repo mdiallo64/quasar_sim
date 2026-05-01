@@ -18,7 +18,7 @@ class Shader
         //lilnks them into a program which is stored in ID
         Shader(const char* vertexPath, const char* fragmentPath);
 
-        //Binds the shader program for draaw calls
+        //Binds the shader program for draw calls
         void use();
 
         //uniform setters, each one finds the uniform by name and sets its value
