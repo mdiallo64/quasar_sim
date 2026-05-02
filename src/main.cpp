@@ -8,6 +8,7 @@
 #include "quasar/black_hole.h"
 #include "quasar/accretion_disk.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include "quasar/jets.h"
 
 
 const unsigned int  SCR_WIDTH = 800;
@@ -131,6 +132,10 @@ int main()
     Shader diskShader("shaders/accretion_disk.vs", "shaders/accretion_disk.fs");
     AccretionDisk disk(2.0f, 8.0f, 25000);
 
+    Shader jetShader("shaders/jets.vs", "shaders/jets.fs");
+    Jets upperJet(1.0f, 1.0f, 20.0f, 0.3f, 5000);
+    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.3f, 5000);
+
 
     //makes sure first timediff isn't huge
     prevTime = glfwGetTime();
@@ -185,6 +190,20 @@ int main()
         diskShader.setFloat("innerRadius", 2.0f);
         diskShader.setFloat("outerRadius", 8.0f);
         disk.draw(diskShader);
+
+        jetShader.use();
+        jetShader.setMat4("projection", projection);
+        jetShader.setMat4("view", view);
+        jetShader.setFloat("time", (float)glfwGetTime());
+        jetShader.setFloat("direction", 1.0f);
+        jetShader.setFloat("speed", 3.0f);
+        jetShader.setFloat("length", 20.0f);
+        jetShader.setFloat("baseY", 1.0f);
+        upperJet.draw(jetShader);
+
+        jetShader.setFloat("direction", -1.0f);
+        jetShader.setFloat("baseY", -1.0f);
+        lowerJet.draw(jetShader);
 
 
         glDepthMask(GL_TRUE); 
