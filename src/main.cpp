@@ -8,6 +8,7 @@
 #include "quasar/black_hole.h"
 #include "quasar/accretion_disk.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include "quasar/jets.h"
 
 
 const unsigned int  SCR_WIDTH = 800;
@@ -131,6 +132,10 @@ int main()
     Shader diskShader("shaders/accretion_disk.vs", "shaders/accretion_disk.fs");
     AccretionDisk disk(2.0f, 8.0f, 25000);
 
+    Shader jetShader("shaders/jets.vs", "shaders/jets.fs");
+    Jets upperJet(1.0f, 1.0f, 20.0f, 0.3f, 5000);
+    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.3f, 5000);
+
 
     //makes sure first timediff isn't huge
     prevTime = glfwGetTime();
@@ -157,7 +162,7 @@ int main()
         }
 
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -169,13 +174,14 @@ int main()
         //view: moves the wolrd relative to the camera position and orientation
         glm::mat4 view = camera.getViewMatrix();
 
-        //the draw scene
-        shader.use();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
 
-        //model matrix set inside BlackHole::draw
-        blackHole.draw(shader);
+        //additive blending:
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);//particle colors add to whatever is behind them instead of replacing
+
+
+        glDepthMask(GL_FALSE); //this disables depth writes so particles don't block other particles
+
 
         diskShader.use();
         diskShader.setMat4("projection", projection);
@@ -184,6 +190,33 @@ int main()
         diskShader.setFloat("innerRadius", 2.0f);
         diskShader.setFloat("outerRadius", 8.0f);
         disk.draw(diskShader);
+
+        jetShader.use();
+        jetShader.setMat4("projection", projection);
+        jetShader.setMat4("view", view);
+        jetShader.setFloat("time", (float)glfwGetTime());
+        jetShader.setFloat("direction", 1.0f);
+        jetShader.setFloat("speed", 3.0f);
+        jetShader.setFloat("length", 20.0f);
+        jetShader.setFloat("baseY", 1.0f);
+        upperJet.draw(jetShader);
+
+        jetShader.setFloat("direction", -1.0f);
+        jetShader.setFloat("baseY", -1.0f);
+        lowerJet.draw(jetShader);
+
+
+        glDepthMask(GL_TRUE); 
+        glDisable(GL_BLEND);
+
+        //the draw scene
+        shader.use();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+                
+        //model matrix set inside BlackHole::draw
+        blackHole.draw(shader);
 
 
         //swaps thr front and back buffers, shows the rendered frame to the screen
