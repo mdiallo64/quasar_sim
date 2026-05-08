@@ -11,7 +11,7 @@ BlackHole::BlackHole(float r)
 {
 
     radius = r;
-    generateSphere(64, 32); //kind of high resolution (sectors, stacks) respectively
+    generateSphere(128, 64); //kind of high resolution (sectors, stacks) respectively
 
 
 }

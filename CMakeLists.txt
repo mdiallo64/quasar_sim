@@ -19,6 +19,7 @@ add_executable(quasar_sim
     src/quasar/black_hole.cpp
     src/quasar/accretion_disk.cpp
     src/quasar/jets.cpp
+    src/gfx/bloom.cpp
 )
 
 target_link_libraries(quasar_sim OpenGL::GL glfw dl)

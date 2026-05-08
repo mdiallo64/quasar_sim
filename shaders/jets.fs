@@ -17,7 +17,7 @@ void main()
     vec3 jetColor = mix(jetBase, jetTip, vHeight);
 
     //fade alpha to zero at the tip so particles fade off
-    float alpha = mix(0.8, 0.0, vHeight);
+    float alpha = mix(0.3, 0.0, vHeight * vHeight);
 
-    color = vec4(jetColor, alpha);
+    color = vec4(jetColor * 6.0, alpha);
 }

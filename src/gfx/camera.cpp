@@ -6,7 +6,8 @@ Camera::Camera(glm::vec3 pos)
 {
     cameraPos = pos;
     worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //default to look towards -z 
+    //cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //default to look towards -z
+    cameraFront = glm::vec3(0.0f, 2.0f, 12.0f); 
     yaw = -90.0;    //set at this value so camera faces -z initially (not +x)
     pitch = 0.0f;   //initally looking at level view, no tilt, x = 0
     sensitivity = 0.05f; //can be tuned to adjust camera rotation speed
