@@ -23,7 +23,7 @@ void AccretionDisk::setupMesh()
     std::vector<float> instanceData;
 
 
-    float s = 0.05;
+    float s = 0.08;
     float quadVertices[] = 
     {
     -s, 0.0f, -s,

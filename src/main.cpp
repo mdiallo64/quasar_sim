@@ -9,6 +9,7 @@
 #include "quasar/accretion_disk.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "quasar/jets.h"
+#include "gfx/bloom.h"
 
 
 const unsigned int  SCR_WIDTH = 800;
@@ -16,7 +17,7 @@ const unsigned int  SCR_HEIGHT = 600;
 
 //global state that is accessible by callbacks
 //Camera is glbal so mouse/scroll callbacks can update it wihout any extra prameters
-Camera camera (glm::vec3(0.0f, 8.0f, 15.0f));
+Camera camera (glm::vec3(0.0f,4.0f, 14.0f));
 
 //tracks the previouse mouse position to calculate compute per frame deltas
 float lastX = SCR_WIDTH / 2.0f;
@@ -122,6 +123,9 @@ int main()
         return -1;
     }
 
+    //constructs bloom object
+    Bloom bloom(SCR_WIDTH, SCR_HEIGHT);
+
     //enables depth testing so closer geometry blocks geometry behind it
     glEnable(GL_DEPTH_TEST);
 
@@ -130,15 +134,57 @@ int main()
     BlackHole blackHole(1.0f); //radius of 1.0 in world units
 
     Shader diskShader("shaders/accretion_disk.vs", "shaders/accretion_disk.fs");
-    AccretionDisk disk(2.0f, 8.0f, 25000);
+    AccretionDisk disk(2.0f, 8.0f, 30000);
 
     Shader jetShader("shaders/jets.vs", "shaders/jets.fs");
-    Jets upperJet(1.0f, 1.0f, 20.0f, 0.3f, 5000);
-    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.3f, 5000);
+    Jets upperJet(1.0f, 1.0f, 20.0f, 0.15f, 25000);
+    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.1f, 10);
 
 
     //makes sure first timediff isn't huge
     prevTime = glfwGetTime();
+
+    //creating framebuffer
+    unsigned int FBO;
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    //creating texture for framebuffer
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    //generates texture image on the currently bound texture object
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); //set to null as we are only allocating memory for now. will fill later
+
+    //sets texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //attaches texture to frame buffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);  
+
+    //render buffer objects
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);  
+
+    //creates depth and stencil renderbuffer object
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    //attaches rbo to framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);  
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	    std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+
+    glClearColor(0.0, 0.0f, 0.0f, 1.0f);
 
     //render loop
     while(!glfwWindowShouldClose(window))
@@ -162,8 +208,6 @@ int main()
         }
 
 
-        glClearColor(0.0, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
         //builds transformation matrices
@@ -173,6 +217,9 @@ int main()
 
         //view: moves the wolrd relative to the camera position and orientation
         glm::mat4 view = camera.getViewMatrix();
+
+        //redirects the scene rendering into HDR buffer
+        bloom.bindHDR();
 
 
         //additive blending:
@@ -202,6 +249,7 @@ int main()
         upperJet.draw(jetShader);
 
         jetShader.setFloat("direction", -1.0f);
+        jetShader.setFloat("speed", 3.0f);
         jetShader.setFloat("baseY", -1.0f);
         lowerJet.draw(jetShader);
 
@@ -217,6 +265,9 @@ int main()
                 
         //model matrix set inside BlackHole::draw
         blackHole.draw(shader);
+
+        bloom.render();
+
 
 
         //swaps thr front and back buffers, shows the rendered frame to the screen
