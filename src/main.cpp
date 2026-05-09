@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "quasar/jets.h"
 #include "gfx/bloom.h"
+#include "quasar/starfield.h"
+
 
 
 const unsigned int  SCR_WIDTH = 800;
@@ -123,6 +125,9 @@ int main()
         return -1;
     }
 
+    Shader starShader("shaders/starfield.vs", "shaders/starfield.fs");
+    Starfield starfield(5000, 60.0f);
+
     //constructs bloom object
     Bloom bloom(SCR_WIDTH, SCR_HEIGHT);
 
@@ -220,6 +225,13 @@ int main()
 
         //redirects the scene rendering into HDR buffer
         bloom.bindHDR();
+
+        glDepthMask(GL_FALSE);
+        starShader.use();
+        starShader.setMat4("projection", projection);
+        starShader.setMat4("view", view);
+        starfield.draw(starShader);
+        glDepthMask(GL_TRUE);
 
 
         //additive blending:

@@ -20,6 +20,7 @@ add_executable(quasar_sim
     src/quasar/accretion_disk.cpp
     src/quasar/jets.cpp
     src/gfx/bloom.cpp
+    src/quasar/starfield.cpp
 )
 
 target_link_libraries(quasar_sim OpenGL::GL glfw dl)
