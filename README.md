@@ -4,7 +4,7 @@ A real-time 3D quasar simulation built with OpenGL. Simulates the key
 visual features of a quasar: an accretion disk with Keplerian orbital 
 mechanics, relativistic jets, and a central black hole.
 
-<img width="1621" height="1264" alt="Screenshot 2026-05-02 234030" src="https://github.com/user-attachments/assets/fc26397e-1bc5-450e-9267-10d71028bf4a" />
+<img width="1616" height="1254" alt="image" src="https://github.com/user-attachments/assets/26b7691d-b8a5-49be-9799-70ed1e4f3dcd" />
 
 
 Features
@@ -18,6 +18,9 @@ Features
   plasma emission
 - Interactive camera: Mouse to rotate, scroll to zoom
 - FPS counter: Displayed in window title
+- WASD Camera movements
+- Q/E for vertical movement
+- 1,2,3,4,5 to change particle count
 
 Stack
 
