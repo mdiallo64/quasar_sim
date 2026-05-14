@@ -43,11 +43,16 @@ void Jets::setupMesh()
     //horizontal scatter within tubeRadius o
     std::uniform_real_distribution<float> xzDist(-tubeRadius, tubeRadius);
 
-    for (unsigned int i = 0; i < particleCount; i++)
+    std::uniform_real_distribution<float> timeDist(0.0f, length);
+
+    for (unsigned int i = 0; i < particleCount; i++) 
     {
-        instanceData.push_back(yDist(gen)); //starting Y position
-        instanceData.push_back(xzDist(gen)); //x offset
-        instanceData.push_back(xzDist(gen)); //z offset
+        // random starting offset instead of evenly spaced
+        float y = timeDist(gen);
+        
+        instanceData.push_back(y);
+        instanceData.push_back(xzDist(gen));
+        instanceData.push_back(xzDist(gen));
     }
 
     glGenVertexArrays(1, &VAO);

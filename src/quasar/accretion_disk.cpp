@@ -82,3 +82,12 @@ void AccretionDisk::draw(Shader &shader)
     glBindVertexArray(0);
 }
     
+void AccretionDisk::regenerate(unsigned int newCount)
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &quadVBO);
+    glDeleteBuffers(1, &instanceVBO);
+
+    particleCount = newCount;
+    setupMesh();
+}

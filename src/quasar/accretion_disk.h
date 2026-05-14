@@ -14,6 +14,8 @@ class AccretionDisk{
         AccretionDisk(float innerRadius, float outerRadius, unsigned int particleCount);
 
         void draw(Shader &shader);
+        
+        void regenerate(unsigned int newCount);
 
 
     private:

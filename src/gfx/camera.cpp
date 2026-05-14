@@ -1,6 +1,7 @@
 #include "camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
+#include <GLFW/glfw3.h>
 
 Camera::Camera(glm::vec3 pos)
 {
@@ -10,7 +11,7 @@ Camera::Camera(glm::vec3 pos)
     cameraFront = glm::vec3(0.0f, 2.0f, 12.0f); 
     yaw = -90.0;    //set at this value so camera faces -z initially (not +x)
     pitch = 0.0f;   //initally looking at level view, no tilt, x = 0
-    sensitivity = 0.05f; //can be tuned to adjust camera rotation speed
+    sensitivity = 0.02f; //can be tuned to adjust camera rotation speed
     fov = 45.0f;    //starting field of view
 }
 
@@ -50,6 +51,28 @@ void Camera::processScroll(float yoffset)
 float Camera::getFov() const
 {
     return fov;
+}
+
+void Camera::processKeyboard(GLFWwindow* window, float deltaTime)
+{
+    float speed = 5.0f * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += speed * cameraFront;
+        
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= speed * cameraFront;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+
+        cameraPos -= glm::normalize(glm::cross(cameraFront, worldUp)) * speed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, worldUp)) * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    cameraPos += speed * worldUp;
+
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    cameraPos -= speed * worldUp;
 }
     
 

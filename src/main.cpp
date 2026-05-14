@@ -36,6 +36,13 @@ double timeDiff = 0.0;
 unsigned int counter = 0;
 
 
+bool key1Pressed = false;
+bool key2Pressed = false;
+bool key3Pressed = false;
+bool key4Pressed = false;
+bool key5Pressed = false;
+
+
 //called by GLFW whenever the window is resized
 //keeps the opengl viewport matched to the new window dimensions
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -143,7 +150,7 @@ int main()
 
     Shader jetShader("shaders/jets.vs", "shaders/jets.fs");
     Jets upperJet(1.0f, 1.0f, 20.0f, 0.15f, 25000);
-    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.1f, 10);
+    Jets lowerJet(-1.0f, -1.0f, 20.0f, 0.1f, 25000);
 
 
     //makes sure first timediff isn't huge
@@ -191,9 +198,15 @@ int main()
 
     glClearColor(0.0, 0.0f, 0.0f, 1.0f);
 
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+
     //render loop
     while(!glfwWindowShouldClose(window))
     {
+        float currentFrame = (float)glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
         processInput(window);
 
@@ -250,19 +263,21 @@ int main()
         diskShader.setFloat("outerRadius", 8.0f);
         disk.draw(diskShader);
 
+        
         jetShader.use();
+        jetShader.setFloat("baseY", 0.0f);
         jetShader.setMat4("projection", projection);
         jetShader.setMat4("view", view);
         jetShader.setFloat("time", (float)glfwGetTime());
         jetShader.setFloat("direction", 1.0f);
         jetShader.setFloat("speed", 3.0f);
         jetShader.setFloat("length", 20.0f);
-        jetShader.setFloat("baseY", 1.0f);
+        jetShader.setFloat("baseY", 0.0f);
         upperJet.draw(jetShader);
 
         jetShader.setFloat("direction", -1.0f);
         jetShader.setFloat("speed", 3.0f);
-        jetShader.setFloat("baseY", -1.0f);
+        jetShader.setFloat("baseY", 0.0f);
         lowerJet.draw(jetShader);
 
 
@@ -282,12 +297,50 @@ int main()
 
 
 
+        camera.processKeyboard(window, deltaTime);
+
         //swaps thr front and back buffers, shows the rendered frame to the screen
         glfwSwapBuffers(window);
 
         //processes any queued OS events, fires the callsbacks like mouse, scroll, and resize
         glfwPollEvents();
+
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && !key1Pressed)
+        {
+            disk.regenerate(10000);
+            key1Pressed = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) key1Pressed = false;
+
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS && !key2Pressed)
+        {
+            disk.regenerate(25000);
+            key2Pressed = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE) key2Pressed = false;
+
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && !key3Pressed)
+        {
+            disk.regenerate(50000);
+            key3Pressed = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) key3Pressed = false;
+
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS && !key4Pressed)
+        {
+            disk.regenerate(100000);
+            key4Pressed = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE) key4Pressed = false;
+
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS && !key5Pressed)
+        {
+            disk.regenerate(150000);
+            key5Pressed = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE) key5Pressed = false;
     }
+    
         glfwTerminate();
         return 0;
 }

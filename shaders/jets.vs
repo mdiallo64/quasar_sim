@@ -22,19 +22,15 @@ out float vHeight;
 
 void main()
 {
-    //move particle along Y axis over time then loop back
-    //direction flips the motion for upper (Y+) vs lower (-Y) jet
-    float currentY = mod(posData.x + time * speed * direction, length) + baseY;
+    //keep mod input always positive by using abs(direction)
+    //then apply direction after to flip for lower jet
+    float offset = mod(posData.x + time * speed, length);
+    float currentY = baseY + offset * direction;
 
-    //horizontal scatter stays the same, only Y animates
+
     vec3 worldPos = vec3(posData.y, currentY, posData.z);
-
-    //offset the quad vertex by the particle's world pos
     vec3 finalPos = vec3(worldPos + aPos);
-
     gl_Position = projection * view * vec4(finalPos, 1.0);
 
-    //normalizes height to 0-1 range
-    //clamped to handle negative values from the lower jet direction
-    vHeight = clamp((currentY - baseY) / length, 0.0, 1.0);
+    vHeight = clamp(offset / length, 0.0, 1.0);
 }
