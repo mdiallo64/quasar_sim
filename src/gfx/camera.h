@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 
 //first person camera style class
 //processes mouses input to rotate view
@@ -23,7 +24,9 @@ class Camera
         //modifies fov
         void processScroll(float yoffset);  
         //returns current fov
-        float getFov() const;              
+        float getFov() const;   
+
+        void processKeyboard(GLFWwindow* window, float deltaTime);       
 
 
         
